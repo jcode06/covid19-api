@@ -1,6 +1,12 @@
 ## Resources
 https://devcenter.heroku.com/articles/mean-apps-restful-api
 
+Using the Scheduler with NodeJS
+http://www.modeo.co/blog/2015/1/8/heroku-scheduler-with-nodejs-tutorial
+
+Connecting to DynamoDB from Heroku:
+https://stackoverflow.com/questions/37483221/can-i-use-dynamodb-through-heroku?noredirect=1&lq=1
+
 # node-js-getting-started
 
 A barebones Node.js app using [Express 4](http://expressjs.com/).
