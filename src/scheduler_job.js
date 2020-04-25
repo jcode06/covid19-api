@@ -1,28 +1,59 @@
-const AWS = require('aws-sdk');
-AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: 'us-west-2',
-    endpoint: "https://dynamodb.us-west-2.amazonaws.com"
-});
-const docClient = new AWS.DynamoDB.DocumentClient();
+const aws = require('./aws');
+const dataReader = require('./dataReader');
 
 
-const query = async (hashKey, secondaryKey) => {
-    if(!hashKey) { throw '(query) hashKey or secondaryKey is missing'; }
+/*
+pastRecords - allows to only write the number of pastRecords specified, to avoid
+excessive rewrites to DynamoDB
+*/
+const batchWriter = (json, pastRecords) => {
+    Object.entries(json).forEach( async data => {
+        let [ state, metadata ] = data;
 
-    return await docClient.query({
-        TableName: 'covidData',
-        KeyConditionExpression: '#hashkey = :hkey',
-        ExpressionAttributeNames: { '#hashkey': 'regionCountry' },
-        ExpressionAttributeValues: {
-            ':hkey': hashKey
+        console.log(state, metadata.length);
+
+        if(pastRecords && pastRecords <= 25) {
+            let slice = metadata.slice(0, pastRecords);
+            try {
+                await aws.batchWrite(slice);
+            }
+            catch(e) { 
+                console.log('Error batch writing', e);
+            }
+            console.log(state, slice.length);
         }
-    }).promise();
+        else {
+            let index = 0;
+            // loop through the complete set and write in batches of 25
+            while(index < metadata.length) {
+                let slice = metadata.slice(index, index*1+25);
+                try {
+                    await aws.batchWrite(slice);
+                }
+                catch(e) { 
+                    console.log('Error batch writing', e);
+                }
+    
+                console.log(state, index, slice.length);
+                index += 25;
+            }
+        }
+    });
 };
 
-const run = async (region) => {
-    console.log( await query(region) );
+const run = async () => {
+    try {
+        let json = await dataReader.fetchDailyJson();
+
+        // console.log(json);
+
+        batchWriter(json, 2);
+        // batchWriter(json);
+    }
+    catch(e) {
+        console.log('Error (run)', e);
+    }
+
 };
-run('AK-US');
+run();
 

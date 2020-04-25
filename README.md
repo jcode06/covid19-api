@@ -7,6 +7,13 @@ http://www.modeo.co/blog/2015/1/8/heroku-scheduler-with-nodejs-tutorial
 Connecting to DynamoDB from Heroku:
 https://stackoverflow.com/questions/37483221/can-i-use-dynamodb-through-heroku?noredirect=1&lq=1
 
+# Environment Variables
+heroku config must be run for the following variables:
+    AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY
+
+AWS Account must be capable of read/write to DynamoDB
+
 # node-js-getting-started
 
 A barebones Node.js app using [Express 4](http://expressjs.com/).
