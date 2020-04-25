@@ -23,8 +23,8 @@ const batchWrite = async items => {
     console.log('Items written to DynamoDB:', requestItems);
 };
 
-const query = async (hashKey, secondaryKey) => {
-    if(!hashKey) { throw '(query) hashKey or secondaryKey is missing'; }
+const queryRegionCountry = async (hashKey, secondaryKey) => {
+    if(!hashKey) { throw '(query) hashKey is missing'; }
 
     return await docClient.query({
         TableName: 'covidData',
@@ -36,7 +36,24 @@ const query = async (hashKey, secondaryKey) => {
     }).promise();
 };
 
+const queryTimestamp = async (hashKey, secondaryKey) => {
+    if(!hashKey) { throw '(query) hashKey is missing'; }
+
+    return await docClient.query({
+        TableName: 'covidData',
+        IndexName: 'timestamp-regionCountry-index',
+        KeyConditionExpression: '#hashkey = :hkey',
+        ExpressionAttributeNames: { 
+            '#hashkey': 'timestamp'
+        },
+        ExpressionAttributeValues: {
+            ':hkey': hashKey
+        }
+    }).promise();
+};
+
 module.exports = {
     batchWrite,
-    query
+    queryRegionCountry,
+    queryTimestamp
 };

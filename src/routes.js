@@ -1,23 +1,43 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
+const moment = require('moment');
 
-// wrap readFile in a promise
-const util = require('util');
-const readFile = util.promisify(fs.readFile);
+// local libraries
+const aws = require('./aws');
+const dataReader = require('./dataReader');
 
 // Generic error handler
 const handlerError = (res, reason, message, code) => {
     console.log(`ERROR: ${reason}`);
     res.status(code || 500).json({'error': message});
-  };
+};
   
-
-router.get('/states', async (req, res) => {
+router.get('/states/:dateString', async (req, res) => {
 
     try {
-        let fileRes = await readFile('./data/states.json', 'utf-8');
-        res.status(200).json(JSON.parse(fileRes) );
+        if(!req.params || !req.params.dateString) { 
+            let message = 'dateString not provided';
+            return handlerError(res, message, message, 501);
+        }
+
+        let dateString = req.params.dateString;
+        let timestamp = moment(dateString, 'YYYYMMDD').valueOf();
+
+        console.log(`dateString = ${dateString}`, `timestamp = ${timestamp}`);
+
+        if(isNaN(timestamp) ) {
+            let message = 'Not a valid dateString';
+            return handlerError(res, message, message, 501);
+        }
+
+        let start = Date.now();
+        let queryResponse = await aws.queryTimestamp(timestamp);
+        let end = Date.now();
+
+        console.log('queryTime', `${end - start}ms`, start, end);
+
+        res.status(200).json(queryResponse);
     }
     catch(e) {
         console.log('Error', e );
@@ -26,7 +46,6 @@ router.get('/states', async (req, res) => {
 });
 
 router.get('/state/:state', async (req, res) => {
-
     try {
         if(!req.params || !req.params.state) { 
             let message = 'Not a valid state, or state not provided';
@@ -34,21 +53,20 @@ router.get('/state/:state', async (req, res) => {
         }
         let state = req.params.state;
 
-        let fileRes = await readFile('./data/states.json', 'utf-8');
-        let data = JSON.parse(fileRes);
+        let start = Date.now();
+        let queryResponse = await aws.queryRegionCountry(`${state}-US`);
+        console.log( Object.keys(queryResponse) );
+        let end = Date.now();
 
-        let stateKeys = Object.keys(data);
-        if(!stateKeys.includes(state)) { 
-            let message = 'State not found, check the state abbreviation supplied';
-            return handlerError(res, message, message, 501);
-        }
+        console.log('queryTime', `${end - start}ms`, start, end);
 
-        res.status(200).json(data[state]);
+        res.status(200).json(queryResponse);
     }
     catch(e) {
       console.log('Error', e );
       handlerError(res, 'Something went wrong, check the server', 'Something went wrong, check the server', 500);
     }
 });
+
 
 module.exports = router;
