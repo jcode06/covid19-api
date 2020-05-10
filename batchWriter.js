@@ -1,6 +1,5 @@
-const aws = require('./aws');
-const dataReader = require('./dataReader');
-
+const aws = require('./src/aws');
+const dataReader = require('./src/dataReader');
 
 /*
 pastRecords - allows to only write the number of pastRecords specified, to avoid
@@ -44,15 +43,17 @@ const batchWriter = async (json, pastRecords) => {
 
 const run = async () => {
     try {
-        let json = await dataReader.fetchDailyJson();
-
+       let json = await dataReader.fetchDailyJson();
+        
+        
         console.log('before batch write');
-        await batchWriter(json, 2);
+        // await batchWriter(json, 2);
+        await batchWriter(json);
         console.log('after batch write');
     }
     catch(e) {
         console.log('Error (run)', e);
     }
+
 };
 run();
-
