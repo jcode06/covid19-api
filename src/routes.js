@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const moment = require('moment');
+const moment = require('moment-timezone');
+
+// set the default timezone to UTC
+moment.tz.setDefault('UTC');
+
 
 // local libraries
 const aws = require('./aws');
