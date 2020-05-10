@@ -5,6 +5,11 @@ const util = require('util');
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
+const moment = require('moment-timezone');
+
+// set the default timezone to UTC
+moment.tz.setDefault('UTC');
+
 
 const formatRow = (state, country) => row => {
     let {
@@ -35,7 +40,8 @@ const formatRow = (state, country) => row => {
     } = row;
 
     date = date + '';
-    const dateTimestamp = Date.parse(`${date.substring(0, 4)}/${date.substring(4, 6)}/${date.substring(6, 8)}`);
+    const dateTimestamp = moment(date).valueOf();
+    // const dateTimestamp = Date.parse(`${date.substring(0, 4)}/${date.substring(4, 6)}/${date.substring(6, 8)}`);
 
     const primaryKey = `${state}-${country}`;
 

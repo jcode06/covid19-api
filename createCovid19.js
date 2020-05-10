@@ -53,6 +53,26 @@ let params = {
         KeyType: 'RANGE'
       }
     ],
+    GlobalSecondaryIndexes: [{
+      IndexName: "timestamp-regionCountry-index",
+      KeySchema: [
+          {
+              AttributeName: "timestamp",
+              KeyType: "HASH"
+          },
+          {
+              AttributeName: "regionCountry",
+              KeyType: "RANGE"
+          }
+      ],
+      Projection: {
+          ProjectionType: "ALL"
+      },
+      ProvisionedThroughput: {
+          ReadCapacityUnits: 2,
+          WriteCapacityUnits: 2
+      }
+    }],    
     LocalSecondaryIndexes: [
         {
             "IndexName": "regionCountry-deathIncrease-index",

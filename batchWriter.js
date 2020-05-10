@@ -6,8 +6,10 @@ pastRecords - allows to only write the number of pastRecords specified, to avoid
 excessive rewrites to DynamoDB
 */
 const batchWriter = async (json, pastRecords) => {
-    return Promise.all( Object.entries(json).map( async data => {
-        let [ state, metadata ] = data;
+    let list = Object.entries(json);
+    
+    for(let i = 0; i < list.length; i++) {
+        let [ state, metadata ] = list[i];
 
         console.log(state, metadata.length);
 
@@ -38,7 +40,8 @@ const batchWriter = async (json, pastRecords) => {
                 index += 25;
             }
         }
-    }) );
+    }
+
 };
 
 const run = async () => {
