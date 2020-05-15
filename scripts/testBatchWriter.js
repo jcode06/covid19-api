@@ -1,5 +1,5 @@
-const batchWriter = require('./src/batchWriter');
-const dataReader = require('./src/dataReader');
+const batchWriter = require('../src/batchWriter');
+const dataReader = require('../src/dataReader');
 
 
 const run = async () => {

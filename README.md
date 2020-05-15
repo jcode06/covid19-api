@@ -33,6 +33,7 @@ or
 heroku config must be run for the following variables:
     AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY
+    NODE_ENV=production
 
 AWS Account must be capable of read/write to DynamoDB
 
@@ -47,6 +48,10 @@ AWS Account must be capable of read/write to DynamoDB
 [Connecting to DynamoDB from Heroku]
 (https://stackoverflow.com/questions/37483221/can-i-use-dynamodb-through-heroku?noredirect=1&lq=1)
 A barebones Node.js app using [Express 4](http://expressjs.com/).
+
+[COVID Tracking Project for US Data](http://covidtracking.com/)
+
+[COVID 19 API for Global Data](https://documenter.getpostman.com/view/10808728/SzS8rjbc?version=latest)
 
 This application supports the [Getting Started on Heroku with Node.js](https://devcenter.heroku.com/articles/getting-started-with-nodejs) article - check it out.
 
