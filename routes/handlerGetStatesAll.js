@@ -13,8 +13,14 @@ const redis = require('../src/redis');
 const handlerError = require('./handlerError');
 
 const handlerGetStatesAll = async(req, res) => {
-    let { columnNames, getAll } = req.query;
-    
+    let { columnNames, getAll, format } = req.query;
+
+    switch(format) {
+        case 'state': format = 'state'; break;
+        case 'timestamp': 
+        default: format = 'timestamp'; break;
+    }
+
     if(getAll == undefined && columnNames == undefined ) { 
         console.log('queryString', req.query);
         handlerError(res, 'No columns specified', 'No columns specified', 500);
@@ -51,8 +57,9 @@ const handlerGetStatesAll = async(req, res) => {
         let statesData = {};
         for(let i=0; i < response.length; i++) {
             let row = response[i];
-            if(statesData[row.state] == undefined) { statesData[row.state] = []; }
-            statesData[row.state].push(row);
+
+            if(statesData[row[format]] == undefined) { statesData[row[format]] = []; }
+            statesData[row[format]].push(row);
         }
         let end = Date.now(); 
         console.log(`${(end - start)/1000}s to transform`);
