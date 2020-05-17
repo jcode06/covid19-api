@@ -42,7 +42,7 @@ const handlerGetStatesAll = async(req, res) => {
     try {
         let response = await redis.getUSAll(columnNames);
 
-        let start = Date.now(); 
+        let transformStart = Date.now(); 
         // sort by timestamp, then state
         response = response.sort( (item1, item2) => {
             if(item1.timestamp < item2.timestamp) { return -1; }
@@ -61,8 +61,8 @@ const handlerGetStatesAll = async(req, res) => {
             if(statesData[row[format]] == undefined) { statesData[row[format]] = []; }
             statesData[row[format]].push(row);
         }
-        let end = Date.now(); 
-        console.log(`${(end - start)/1000}s to transform`);
+        let transformEnd = Date.now(); 
+        console.log(`${(transformEnd - transformStart)/1000}s to transform`);
 
         res.status(200).json({ Items: statesData, Count: response.length });
     }
@@ -70,6 +70,9 @@ const handlerGetStatesAll = async(req, res) => {
         console.log('Error', e );
         handlerError(res, 'Something went wrong, check the server', 'Something went wrong, check the server', 500);
     }    
+    let end = Date.now(); 
+    console.log(`${(end - start)/1000}s total transaction time`);
+    console.log('');
 };
 
 module.exports = handlerGetStatesAll;
