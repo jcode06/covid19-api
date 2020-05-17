@@ -12,6 +12,7 @@ const routes = require('./routes/routes.js');
 const PORT = process.env.PORT || 8080
 
 const app = express();
+app.use(compression() );
 app.use(bodyParser.json() );
 app.use( rateLimit({
   windowMs: 10 * 60 * 1000, // 15 minutes
