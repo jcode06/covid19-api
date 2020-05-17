@@ -5,6 +5,7 @@ if(process.env.NODE_ENV !== 'production') {
 // IO Redis Client
 const IORedis = require('ioredis');
 const ioredis = new IORedis(process.env.REDIS_URL);
+const { Timer } = require('./helper');
 
 const moment = require('moment-timezone');
 
@@ -93,6 +94,7 @@ const get = async(country='US', startDateString, endDateString, keys) => {
     if(keys != undefined && keys.length > 0) {
         keys = [...(new Set(['regionCountry', 'country', 'state', 'timestamp', ...keys]).keys() )];
     }
+    let redisTimer = new Timer();
 
     try {
         let smembers = await getHashesForDateRange(country, startDateString, endDateString);
@@ -101,18 +103,15 @@ const get = async(country='US', startDateString, endDateString, keys) => {
         smembers.map(hash => ['hgetall', hash]) :
         smembers.map(hash => ['hmget', hash, ...keys]);
     
-// console.log(hmgetCommands);
-
-        let redisStart = Date.now();
+        redisTimer.start();
         let redisResponse = await ioredis.pipeline(hmgetCommands).exec();
-        let redisEnd = Date.now();
+        redisTimer.end();        
     
         let data = redisResponse.map( mapTransformGetResponse(keys) );
 
-        console.log(`${(redisEnd - redisStart)/1000}s - Redis Pipeline hmget Execution`);
+        console.log(`${redisTimer.seconds}s - Redis Pipeline hmget Execution`);
 
         return data;
-        // return new Promise( () => data, err => err);
     }
     catch(e) {
         console.log('[getUS] Error querying Redis: ', e);
@@ -126,7 +125,10 @@ const batchWriteUS = async (startDateString, endDateString) => {
     let ending = moment(endDateString, 'YYYYMMDD');
     
     const NUMDAYS = ending.diff(starting, 'days');
-    const opStart = Date.now();
+
+    const opTimer = new Timer();
+    const redisTimer = new Timer();
+    opTimer.start();
 
     let commands = [];
 
@@ -136,34 +138,36 @@ const batchWriteUS = async (startDateString, endDateString) => {
             let timestamp = moment(starting.valueOf() )
                 .add(i, 'days')
                 .valueOf();
+            let awsTimer = new Timer();
         
-                let awsStart = Date.now();
-                let queryResponse = await aws.queryTimestamp(timestamp);
-                let awsEnd = Date.now();
+            awsTimer.start();
+            let queryResponse = await aws.queryTimestamp(timestamp);
+            awsTimer.end();
 
-                let hsetCommands = queryResponse.Items.map(mapHsetCommands);
-                let saddCommands = queryResponse.Items.reduce(reducerSaddCommands, ['sadd', `US:${timestamp}`])
+            let hsetCommands = queryResponse.Items.map(mapHsetCommands);
+            let saddCommands = queryResponse.Items.reduce(reducerSaddCommands, ['sadd', `US:${timestamp}`])
 
-                hsetCommands.push(saddCommands);
-                commands.push(hsetCommands);
+            hsetCommands.push(saddCommands);
+            commands.push(hsetCommands);
 
-                console.log( moment(timestamp).format('YYYYMMDD'), `US:${timestamp}` );
-                console.log(`${(awsEnd - awsStart)/1000}s - AWS DynamoDB Query`)
+            console.log( moment(timestamp).format('YYYYMMDD'), `US:${timestamp}` );
+            console.log(`${awsTimer.seconds}s - AWS DynamoDB Query`);
+            console.log('');
         }
         commands = commands.flat();
-
-        let redisStart = Date.now();
+        
+        redisTimer.start();
         let redisResponse = await ioredis.pipeline(commands).exec();
-        let redisEnd = Date.now();
-        console.log(`${(redisEnd - redisStart)/1000}s - Redis Pipeline hset/sadd Execution`);
-
-        const opEnd = Date.now();  
-        console.log(`${(opEnd - opStart)/1000}s - Total Operation Time`);
+        redisTimer.end();
+        console.log(`${redisTimer.seconds}s - Redis Pipeline hset/sadd Execution`);
     }
     catch(e) {
         console.log('Error: ', e);
     }        
-
+    opTimer.end();
+    console.log('-----');
+    console.log(`${opTimer.seconds}s - Total Operation Time`);
+    console.log('');
 };
 
 module.exports = {
