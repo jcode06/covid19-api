@@ -10,12 +10,14 @@ const jobs = [
         async: true,
         interval: 4 // every 4 hours
     },
+/*    
     {
         name: 'updateRedisUS', 
         job: updateRedisUS,
         async: true,
         interval: 12 // every 12 hours
     }
+*/
 ]
 
 // scheduler_job is built to run every hour on Heroku

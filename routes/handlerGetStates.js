@@ -27,7 +27,7 @@ const handlerGetStates = async (req, res) => {
         res.status(200).json(queryResponse);
     }
     catch(e) {
-        console.log('Error', e );
+        console.log('Error', e );  
         handlerError(res, 'Something went wrong, check the server', 'Something went wrong, check the server', 500);
     }
     let end = Date.now(); 
